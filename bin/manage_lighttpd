@@ -1,0 +1,61 @@
+#!/bin/bash
+ACTION="$1"
+BASEDIR="$( cd "$(dirname "$0")" ; pwd -P )/.."
+
+function get_pids() {
+    ps -ef| grep "lighttpd -f $BASEDIR/conf/lighttpd.conf" | grep -v grep | awk '{print $2}' | xargs
+}
+
+function start_lighttpd() {
+    local PIDS="$( get_pids )"
+
+    if [ "x$PIDS" != "x" ] ; then
+        echo "Lighttpd is already running!"
+        return 1
+    fi
+
+    echo "Starting all lighttpd processes"
+
+    cd $BASEDIR
+
+    lighttpd -f "$BASEDIR/conf/lighttpd.conf"
+    if [ $? != 0 ]; then
+        echo "Starting lighttpd failed!"
+	return 1
+    fi
+
+    echo "Starting lighttpd succeeded!"
+    return 0
+}
+
+function stop_lighttpd() {
+    local PIDS="$( get_pids )"
+
+    if [ "x$PIDS" == "x" ] ; then
+        echo "Lighttpd is not running!"
+        return 1
+    fi
+
+    echo "Stopping all lighttpd processes"
+
+    kill -9 $PIDS
+    if [ $? != 0 ]; then
+        echo "Stopping lighttpd failed!"
+        return 1
+    fi
+    echo "Stopping lighttpd succeeded!"
+    return 0
+}
+
+if [ "$ACTION"  == "--stop" ] ; then
+    stop_lighttpd
+elif [ "$ACTION" == "--start" ] ; then
+    start_lighttpd
+elif [ "$ACTION" == "--restart" ] ; then
+    stop_lighttpd
+    start_lighttpd
+else
+   echo "Usage: $0 [--start|--stop|--restart]"
+   exit 1
+fi
+
