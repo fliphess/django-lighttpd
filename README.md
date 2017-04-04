@@ -3,7 +3,7 @@ A basic setup to use django with uwsgi and lighttpd (Works on mac osx)
 
 ## Requirements
 
-* `python
+* `python`
 * `virtualenv`
 * `build-essential`
 * `python-dev`
