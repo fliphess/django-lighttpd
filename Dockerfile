@@ -1,7 +1,7 @@
 FROM ubuntu:17.04
 MAINTAINER Flip Hess <flip@fliphess.com>
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get -y upgrade && apt-get install -y lighttpd build-essential python python-dev virtualenv git
+RUN apt-get update && apt-get install -y lighttpd build-essential python python-dev virtualenv git
 ADD conf/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 RUN groupadd django && useradd -Ms /bin/bash -g django -d /opt/django django

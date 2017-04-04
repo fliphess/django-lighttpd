@@ -1,5 +1,5 @@
 # django-lighttpd
-A basic setup to use django with uwsgi and lighttpd (Works on mac osx)
+A basic setup to use django with uwsgi and lighttpd (Works on mac osx if you slightly change the requirements)
 
 ## Requirements
 

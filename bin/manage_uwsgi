@@ -1,10 +1,10 @@
 #!/bin/bash
 ACTION="$1"
-BASEDIR="$( cd "$(dirname "$0")" ; pwd -P )/.."
+BASEDIR="$( cd "$(dirname "$0")/.." ; pwd -P )"
 
 
 function get_pids() {
-    ps -ef| grep '\-\-ini conf/uwsgi.ini' | grep -v grep | awk '{print $2}' | xargs
+    pgrep uwsgi | xargs
 }
 
 
@@ -16,13 +16,15 @@ function start_uwsgi() {
         return 1
     fi
 
+    cd "$BASEDIR" || exit
+
     echo "Starting all uwsgi processes"
 
-    cd "$BASEDIR" && uwsgi --ini conf/uwsgi.ini
-    if [ $? != 0 ]; then
+    if ! uwsgi --ini conf/uwsgi.ini ; then
         echo "Starting uwsgi failed!"
 	return 1
     fi
+
     echo "Starting uwsgi succeeded!"
     return 0
 }
@@ -38,25 +40,31 @@ function stop_uwsgi() {
 
     echo "Stopping all uwsgi processes"
 
-    kill -9 $PIDS
-    if [ $? != 0 ]; then
+    if ! kill -9 $PIDS ; then
         echo "Stopping uwsgi failed!"
 	return 1
     fi
+
     echo "Stopping uwsgi succeeded!"
     return 0
 }
 
-source "$BASEDIR/.venv/bin/activate"
+[ -d "$BASEDIR/.venv" ] && source "$BASEDIR/.venv/bin/activate"
 
-if [ "$ACTION"  == "--stop" ] ; then
-    stop_uwsgi
-elif [ "$ACTION" == "--start" ] ; then
-    start_uwsgi
-elif [ "$ACTION" == "--restart" ] ; then
-    stop_uwsgi
-    start_uwsgi
-else
+case $ACTION in
+    --stop)
+      stop_uwsgi
+    ;;
+    --start)
+      start_uwsgi
+    ;;
+    --restart)
+      stop_uwsgi
+      start_uwsgi
+    ;;
+    *)
     echo "Usage: $0 [--start|--stop|--restart]"
-fi
+    exit 0
+    ;;
+esac
 

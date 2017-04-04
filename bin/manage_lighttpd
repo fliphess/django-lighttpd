@@ -1,10 +1,12 @@
 #!/bin/bash
 ACTION="$1"
-BASEDIR="$( cd "$(dirname "$0")" ; pwd -P )/.."
+BASEDIR="$( cd "$(dirname "$0")/.." ; pwd -P )"
+
 
 function get_pids() {
-    ps -ef| grep "lighttpd -f $BASEDIR/conf/lighttpd.conf" | grep -v grep | awk '{print $2}' | xargs
+    pgrep lighttpd | xargs
 }
+
 
 function start_lighttpd() {
     local PIDS="$( get_pids )"
@@ -14,12 +16,11 @@ function start_lighttpd() {
         return 1
     fi
 
+    cd $BASEDIR || exit
+
     echo "Starting all lighttpd processes"
 
-    cd $BASEDIR
-
-    lighttpd -f "$BASEDIR/conf/lighttpd.conf"
-    if [ $? != 0 ]; then
+    if ! lighttpd -f "$BASEDIR/conf/lighttpd.conf" ; then
         echo "Starting lighttpd failed!"
 	return 1
     fi
@@ -27,6 +28,7 @@ function start_lighttpd() {
     echo "Starting lighttpd succeeded!"
     return 0
 }
+
 
 function stop_lighttpd() {
     local PIDS="$( get_pids )"
@@ -38,24 +40,30 @@ function stop_lighttpd() {
 
     echo "Stopping all lighttpd processes"
 
-    kill -9 $PIDS
-    if [ $? != 0 ]; then
+    if ! kill -9 $PIDS ; then
         echo "Stopping lighttpd failed!"
         return 1
     fi
+
     echo "Stopping lighttpd succeeded!"
     return 0
 }
 
-if [ "$ACTION"  == "--stop" ] ; then
+
+case $ACTION in
+  --stop)
     stop_lighttpd
-elif [ "$ACTION" == "--start" ] ; then
+  ;;
+  --start)
     start_lighttpd
-elif [ "$ACTION" == "--restart" ] ; then
+  ;;
+  --restart)
     stop_lighttpd
     start_lighttpd
-else
-   echo "Usage: $0 [--start|--stop|--restart]"
-   exit 1
-fi
+  ;;
+  *)
+    echo "Usage: $0 [--start|--stop|--restart]"
+    exit 1
+  ;;
+esac
 
